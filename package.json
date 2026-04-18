@@ -1,0 +1,46 @@
+{
+  "name": "stock-a-ko",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/cmd/web/index.js",
+    "dev": "nodemon ./src/cmd/web/index.js",
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "dependencies": {
+    "better-sqlite3": "12.9.0",
+    "compression": "1.8.1",
+    "cookie-parser": "1.4.7",
+    "cors": "2.8.6",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "express-rate-limit": "8.3.2",
+    "express-validator": "7.3.2",
+    "fast-xml-parser": "5.7.1",
+    "helmet": "8.1.0",
+    "hpp": "0.2.3",
+    "joi": "18.1.2",
+    "jose": "6.2.2",
+    "morgan": "1.10.1",
+    "node-html-markdown": "2.0.0",
+    "playwright": "1.59.1",
+    "puppeteer": "24.41.0",
+    "uuid": "13.0.0",
+    "yargs": "18.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.2.1",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.5",
+    "globals": "17.5.0",
+    "nodemon": "3.1.14",
+    "prettier": "3.8.3"
+  }
+}
