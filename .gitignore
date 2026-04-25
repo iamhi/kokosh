@@ -43,3 +43,4 @@ yarn.lock
 
 database.sqlite
 database.db
+*.db
