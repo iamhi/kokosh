@@ -5,7 +5,7 @@ let config = {};
 export const prepare = () => {
   config = {
     url:
-      (process.env.OLLAMA_HOST || 'http://localhost:11434') + OLLAMA_CHAT_PATH,
+      (process.env.OLLAMA_HOST_URL || 'http://localhost:11434') + OLLAMA_CHAT_PATH,
   };
 };
 
