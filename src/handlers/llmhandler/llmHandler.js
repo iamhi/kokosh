@@ -1,12 +1,34 @@
-import {
-  callLlm as ollamaCall,
-  prepare as ollamaPrepare,
-} from './providers/ollamaHandler.js';
+import * as ollamaProvider from './providers/ollamaHandler.js';
+import { createRegistry } from './tools/registry.js';
+import { agentLoop } from './loop.js';
 
-export const prepare = () => {
-  ollamaPrepare();
+const DEFAULT_MODEL_CONFIG = {
+  toolCalling: process.env.OLLAMA_MODEL_TOOL_CALLING || 'llama3.1:8b',
+  synthesis: process.env.OLLAMA_MODEL_SYNTHESIS || 'llama3.1:8b',
+  summarization: process.env.OLLAMA_MODEL_SUMMARIZATION || 'llama3.2:1b',
 };
 
-export const callLlm = async (messages) => {
-  ollamaCall(messages);
+export const run = async ({
+  system,
+  userPrompt,
+  tools: userTools = [],
+  modelConfig = {},
+  maxIterations,
+}) => {
+  ollamaProvider.prepare();
+
+  const registry = createRegistry();
+
+  for (const tool of userTools) {
+    registry.register(tool);
+  }
+
+  return agentLoop({
+    system,
+    userPrompt,
+    registry,
+    provider: ollamaProvider,
+    modelConfig: { ...DEFAULT_MODEL_CONFIG, ...modelConfig },
+    maxIterations,
+  });
 };

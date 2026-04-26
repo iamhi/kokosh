@@ -1,19 +1,25 @@
-import { callLlm } from './llmHandler';
-import { persistResultInFile } from './outputResultHandler';
-import { getSystemPromptFromFile } from './systemPromptHandler';
-import { getUserPromptFromFile } from './userPromptHandler';
+import { run } from './llmHandler.js';
+import { persistResultInFile } from './outputResultHandler.js';
+import { getSystemPromptFromFile } from './systemPromptHandler.js';
+import { getUserPromptFromFile } from './userPromptHandler.js';
 
-export const executeFromFiles = (
+export { run };
+
+export const executeFromFiles = async (
   systemPromptFullPath,
   userPromptFullPath,
-  outputResultFullpath
+  outputResultFullpath,
+  options = {}
 ) => {
-  const systemPromptMessage = getSystemPromptFromFile(systemPromptFullPath);
-  const userPromptMessage = getUserPromptFromFile(userPromptFullPath);
+  const system = getSystemPromptFromFile(systemPromptFullPath);
+  const userPrompt = getUserPromptFromFile(userPromptFullPath);
 
-  const result = callLlm({
-    system: systemPromptMessage,
-    user: userPromptMessage,
+  const result = await run({
+    system,
+    userPrompt,
+    tools: options.tools,
+    modelConfig: options.modelConfig,
+    maxIterations: options.maxIterations,
   });
 
   if (outputResultFullpath) {

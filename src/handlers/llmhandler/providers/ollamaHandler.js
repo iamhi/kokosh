@@ -1,51 +1,67 @@
 const OLLAMA_CHAT_PATH = '/api/chat';
 
-const OLLAMA_DEFAULT_CONFIG = {
-  host: 'http://localhost:11434',
-  model: 'llama3.2:1b',
-};
-
 let config = {};
 
 export const prepare = () => {
   config = {
-    url: OLLAMA_DEFAULT_CONFIG.host + OLLAMA_CHAT_PATH,
-    model: OLLAMA_DEFAULT_CONFIG.model,
+    url:
+      (process.env.OLLAMA_HOST || 'http://localhost:11434') + OLLAMA_CHAT_PATH,
   };
 };
 
-export const callLlm = async (messages) => {
-  const { system, user } = messages;
+const normalizeToolCalls = (toolCalls = []) => {
+  return toolCalls.map((call, i) => {
+    let args;
+    try {
+      args =
+        typeof call.function.arguments === 'string'
+          ? JSON.parse(call.function.arguments)
+          : (call.function.arguments ?? {});
+    } catch {
+      args = {};
+    }
+    return {
+      id: call.id || `call_${i}`,
+      name: call.function.name,
+      arguments: args,
+    };
+  });
+};
+
+export const call = async ({ model, system, messages, tools = [] }) => {
+  const body = {
+    model,
+    messages: [{ role: 'system', content: system }, ...messages],
+    stream: false,
+  };
+
+  if (tools.length > 0) {
+    body.tools = tools;
+  }
 
   const response = await fetch(config.url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: config.model,
-      messages: [
-        {
-          role: 'system',
-          content: system,
-        },
-        {
-          role: 'user',
-          content: user,
-        },
-      ],
-      stream: false,
-    }),
+    body: JSON.stringify(body),
   });
 
-  const data = await response.json();
-
-  if (!data.message?.content) {
-    let error = new Error();
-
-    error.message = 'Content not present in ollama request';
-    error.ollamaCallError = true;
-
-    throw error;
+  if (!response.ok) {
+    throw new Error(
+      `Ollama request failed: ${response.status} ${response.statusText}`
+    );
   }
 
-  return data.message?.content;
+  const data = await response.json();
+  const message = data.message;
+
+  if (!message) {
+    throw new Error('No message in Ollama response');
+  }
+
+  return {
+    content: message.content || '',
+    toolCalls: normalizeToolCalls(message.tool_calls),
+    stopReason:
+      data.done_reason || (message.tool_calls?.length ? 'tool_calls' : 'stop'),
+  };
 };
