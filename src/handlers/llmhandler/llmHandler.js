@@ -3,8 +3,8 @@ import { createRegistry } from './tools/registry.js';
 import { agentLoop } from './loop.js';
 
 const DEFAULT_MODEL_CONFIG = {
-  toolCalling: process.env.OLLAMA_MODEL_TOOL_CALLING || 'llama3.1:8b',
-  synthesis: process.env.OLLAMA_MODEL_SYNTHESIS || 'llama3.1:8b',
+  toolCalling: process.env.OLLAMA_MODEL_TOOL_CALLING || 'llama3.2:1b',
+  synthesis: process.env.OLLAMA_MODEL_SYNTHESIS || 'llama3.2:1b',
   summarization: process.env.OLLAMA_MODEL_SUMMARIZATION || 'llama3.2:1b',
 };
 

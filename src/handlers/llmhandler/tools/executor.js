@@ -3,7 +3,11 @@ export const executeToolCalls = async (toolCalls, registry) => {
   for (const call of toolCalls) {
     const tool = registry.get(call.name);
     if (!tool) {
-      results.push({ id: call.id, name: call.name, result: `Error: unknown tool "${call.name}"` });
+      results.push({
+        id: call.id,
+        name: call.name,
+        result: `Error: unknown tool "${call.name}"`,
+      });
       continue;
     }
     try {

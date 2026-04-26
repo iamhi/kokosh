@@ -1,11 +1,17 @@
 const OLLAMA_CHAT_PATH = '/api/chat';
 
+const debugLog = (label, data) => {
+  if (process.env.LLM_DEBUG !== 'true') return;
+  console.log(`[LLM] ${label}`, JSON.stringify(data, null, 2));
+};
+
 let config = {};
 
 export const prepare = () => {
   config = {
     url:
-      (process.env.OLLAMA_HOST_URL || 'http://localhost:11434') + OLLAMA_CHAT_PATH,
+      (process.env.OLLAMA_HOST_URL || 'http://localhost:11434') +
+      OLLAMA_CHAT_PATH,
   };
 };
 
@@ -39,6 +45,8 @@ export const call = async ({ model, system, messages, tools = [] }) => {
     body.tools = tools;
   }
 
+  debugLog('request', body);
+
   const response = await fetch(config.url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -58,10 +66,14 @@ export const call = async ({ model, system, messages, tools = [] }) => {
     throw new Error('No message in Ollama response');
   }
 
-  return {
+  const result = {
     content: message.content || '',
     toolCalls: normalizeToolCalls(message.tool_calls),
     stopReason:
       data.done_reason || (message.tool_calls?.length ? 'tool_calls' : 'stop'),
   };
+
+  debugLog('response', result);
+
+  return result;
 };

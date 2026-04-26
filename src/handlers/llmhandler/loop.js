@@ -3,6 +3,7 @@ import { executeToolCalls } from './tools/executor.js';
 const DEFAULT_MAX_ITERATIONS = 20;
 const COMPACTION_THRESHOLD = 40;
 const DOOM_LOOP_THRESHOLD = 3;
+const HALLUCINATION_THRESHOLD = 3;
 
 const buildAssistantMessage = (response) => ({
   role: 'assistant',
@@ -39,11 +40,14 @@ const compact = async (messages, system, provider, model) => {
     tools: [],
   });
 
-  // Bug #2 fix: filter messages[0] from tail to prevent duplication
-  const tail = messages.slice(-4).filter((m) => m !== messages[0]);
+  const tailStartIdx = Math.max(1, messages.length - 4);
+  const tail = messages.slice(tailStartIdx);
   return [
     messages[0],
-    { role: 'assistant', content: `<context_summary>\n${content}\n</context_summary>` },
+    {
+      role: 'assistant',
+      content: `<context_summary>\n${content}\n</context_summary>`,
+    },
     ...tail,
   ];
 };
@@ -62,13 +66,18 @@ export const agentLoop = async ({
   const toolSchemas = registry.toAPISchemas();
   let messages = [{ role: 'user', content: userPrompt }];
   const toolCallCounts = new Map();
+  let hallucinationStreak = 0;
 
   for (let iteration = 1; iteration <= maxIterations; iteration++) {
     if (messages.length > COMPACTION_THRESHOLD) {
-      messages = await compact(messages, system, provider, modelConfig.summarization);
+      messages = await compact(
+        messages,
+        system,
+        provider,
+        modelConfig.summarization
+      );
     }
 
-    // Step 1: Tool dispatch
     const toolResponse = await provider.call({
       model: modelConfig.toolCalling,
       system,
@@ -78,7 +87,6 @@ export const agentLoop = async ({
 
     messages.push(buildAssistantMessage(toolResponse));
 
-    // Use stopReason as the primary signal — no more tools means final synthesis
     if (toolResponse.stopReason === 'stop') {
       const final = await provider.call({
         model: modelConfig.synthesis,
@@ -89,11 +97,12 @@ export const agentLoop = async ({
       return final.content;
     }
 
-    // Doom-loop detection: same tool called with identical arguments DOOM_LOOP_THRESHOLD times
     for (const call of toolResponse.toolCalls) {
       const key = serializeToolCall(call);
       const count = (toolCallCounts.get(key) ?? 0) + 1;
+
       toolCallCounts.set(key, count);
+
       if (count >= DOOM_LOOP_THRESHOLD) {
         throw new Error(
           `Doom loop: tool "${call.name}" called with identical arguments ${count} times`
@@ -101,19 +110,27 @@ export const agentLoop = async ({
       }
     }
 
-    // Step 2: Execute tools sequentially
     const results = await executeToolCalls(toolResponse.toolCalls, registry);
     messages.push(...buildToolResultMessages(results));
 
-    // Step 3: Synthesis — digest results, update running understanding
-    const synthesis = await provider.call({
-      model: modelConfig.synthesis,
-      system,
-      messages,
-      tools: [],
-    });
-    messages.push({ role: 'assistant', content: synthesis.content });
+    const unknownTools = results.filter((r) =>
+      r.result.startsWith('Error: unknown tool "')
+    );
+
+    if (unknownTools.length > 0) {
+      hallucinationStreak++;
+      if (hallucinationStreak >= HALLUCINATION_THRESHOLD) {
+        const names = [...new Set(unknownTools.map((r) => r.name))].join(', ');
+        throw new Error(
+          `Hallucination: model called non-existent tool(s) [${names}] for ${hallucinationStreak} consecutive iterations`
+        );
+      }
+    } else {
+      hallucinationStreak = 0;
+    }
   }
 
-  throw new Error(`Agent loop reached max iterations (${maxIterations}) without completing`);
+  throw new Error(
+    `Agent loop reached max iterations (${maxIterations}) without completing`
+  );
 };
