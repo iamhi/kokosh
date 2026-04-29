@@ -13,7 +13,7 @@ const buildAssistantMessage = (response) => ({
         tool_calls: response.toolCalls.map((c) => ({
           id: c.id,
           type: 'function',
-          function: { name: c.name, arguments: JSON.stringify(c.arguments) },
+          function: { name: c.name, arguments: c.arguments },
         })),
       }
     : {}),
@@ -26,32 +26,6 @@ const buildToolResultMessages = (results) =>
     tool_call_id: r.id,
   }));
 
-const compact = async (messages, system, provider, model) => {
-  const compactionSystem = [
-    'Summarize the conversation below into a concise context block.',
-    'Include: original goal, key tool results, conclusions reached, current state.',
-    'Output only the summary, no preamble.',
-  ].join('\n');
-
-  const { content } = await provider.call({
-    model,
-    system: compactionSystem,
-    messages,
-    tools: [],
-  });
-
-  const tailStartIdx = Math.max(1, messages.length - 4);
-  const tail = messages.slice(tailStartIdx);
-  return [
-    messages[0],
-    {
-      role: 'assistant',
-      content: `<context_summary>\n${content}\n</context_summary>`,
-    },
-    ...tail,
-  ];
-};
-
 const serializeToolCall = (call) =>
   JSON.stringify({ name: call.name, arguments: call.arguments });
 
@@ -59,8 +33,9 @@ export const agentLoop = async ({
   system,
   userPrompt,
   registry,
-  provider,
-  modelConfig,
+  toolCaller,
+  synthesis,
+  summerizer,
   maxIterations = DEFAULT_MAX_ITERATIONS,
 }) => {
   const toolSchemas = registry.toAPISchemas();
@@ -69,40 +44,24 @@ export const agentLoop = async ({
   let hallucinationStreak = 0;
 
   for (let iteration = 1; iteration <= maxIterations; iteration++) {
+    // 4. summerize when context grows too large
     if (messages.length > COMPACTION_THRESHOLD) {
-      messages = await compact(
-        messages,
-        system,
-        provider,
-        modelConfig.summarization
-      );
+      messages = await summerizer.summarize(messages, system);
     }
 
-    const toolResponse = await provider.call({
-      model: modelConfig.toolCalling,
-      system,
-      messages,
-      tools: toolSchemas,
-    });
-
+    // 1. do a function call
+    const toolResponse = await toolCaller.run(system, messages, toolSchemas);
     messages.push(buildAssistantMessage(toolResponse));
 
+    // 2. synthesis — model is done, produce final answer
     if (toolResponse.stopReason === 'stop') {
-      const final = await provider.call({
-        model: modelConfig.synthesis,
-        system,
-        messages,
-        tools: [],
-      });
-      return final.content;
+      return toolResponse.content || synthesis.run(system, messages);
     }
 
     for (const call of toolResponse.toolCalls) {
       const key = serializeToolCall(call);
       const count = (toolCallCounts.get(key) ?? 0) + 1;
-
       toolCallCounts.set(key, count);
-
       if (count >= DOOM_LOOP_THRESHOLD) {
         throw new Error(
           `Doom loop: tool "${call.name}" called with identical arguments ${count} times`
@@ -110,6 +69,7 @@ export const agentLoop = async ({
       }
     }
 
+    // 3. loop if yes — execute tools and continue
     const results = await executeToolCalls(toolResponse.toolCalls, registry);
     messages.push(...buildToolResultMessages(results));
 

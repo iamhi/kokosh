@@ -54,8 +54,9 @@ export const call = async ({ model, system, messages, tools = [] }) => {
   });
 
   if (!response.ok) {
+    const errorBody = await response.text().catch(() => '');
     throw new Error(
-      `Ollama request failed: ${response.status} ${response.statusText}`
+      `Ollama request failed: ${response.status} ${response.statusText}${errorBody ? ` — ${errorBody}` : ''}`
     );
   }
 
@@ -69,8 +70,7 @@ export const call = async ({ model, system, messages, tools = [] }) => {
   const result = {
     content: message.content || '',
     toolCalls: normalizeToolCalls(message.tool_calls),
-    stopReason:
-      data.done_reason || (message.tool_calls?.length ? 'tool_calls' : 'stop'),
+    stopReason: message.tool_calls?.length ? 'tool_calls' : (data.done_reason || 'stop'),
   };
 
   debugLog('response', result);

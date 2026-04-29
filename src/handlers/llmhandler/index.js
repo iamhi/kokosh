@@ -1,7 +1,7 @@
 import { run } from './llmHandler.js';
-import { persistResultInFile } from './outputResultHandler.js';
-import { getSystemPromptFromFile } from './systemPromptHandler.js';
-import { getUserPromptFromFile } from './userPromptHandler.js';
+import { persistResultInFile } from './output/outputResultHandler.js';
+import { getSystemPromptFromFile } from './prompts/systemPromptHandler.js';
+import { getUserPromptFromFile } from './prompts/userPromptHandler.js';
 
 export { run };
 
