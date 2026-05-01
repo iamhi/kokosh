@@ -34,10 +34,34 @@ const normalizeToolCalls = (toolCalls = []) => {
   });
 };
 
+const adaptMessages = (messages) =>
+  messages.map((msg) => {
+    if (msg.role !== 'assistant' || !msg.tool_calls) return msg;
+    return {
+      ...msg,
+      tool_calls: msg.tool_calls.map((tc) => ({
+        ...tc,
+        function: {
+          ...tc.function,
+          arguments:
+            typeof tc.function.arguments === 'string'
+              ? (() => {
+                  try {
+                    return JSON.parse(tc.function.arguments);
+                  } catch {
+                    return {};
+                  }
+                })()
+              : (tc.function.arguments ?? {}),
+        },
+      })),
+    };
+  });
+
 export const call = async ({ model, system, messages, tools = [] }) => {
   const body = {
     model,
-    messages: [{ role: 'system', content: system }, ...messages],
+    messages: adaptMessages([{ role: 'system', content: system }, ...messages]),
     stream: false,
   };
 
@@ -54,9 +78,9 @@ export const call = async ({ model, system, messages, tools = [] }) => {
   });
 
   if (!response.ok) {
-    const errorBody = await response.text().catch(() => '');
+    const body = await response.text().catch(() => '');
     throw new Error(
-      `Ollama request failed: ${response.status} ${response.statusText}${errorBody ? ` — ${errorBody}` : ''}`
+      `Ollama request failed: ${response.status} ${response.statusText}${body ? ` — ${body}` : ''}`
     );
   }
 
@@ -70,7 +94,9 @@ export const call = async ({ model, system, messages, tools = [] }) => {
   const result = {
     content: message.content || '',
     toolCalls: normalizeToolCalls(message.tool_calls),
-    stopReason: message.tool_calls?.length ? 'tool_calls' : (data.done_reason || 'stop'),
+    stopReason: message.tool_calls?.length
+      ? 'tool_calls'
+      : data.done_reason || 'stop',
   };
 
   debugLog('response', result);
