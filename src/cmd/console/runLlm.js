@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -38,6 +39,11 @@ const argv = yargs(hideBin(process.argv))
     type: 'string',
     describe: 'Override OLLAMA_MODEL_SYNTHESIS',
   })
+  .option('image', {
+    alias: 'img',
+    type: 'array',
+    describe: 'Path(s) to image file(s) to attach to the user prompt',
+  })
   .help()
   .parse();
 
@@ -58,12 +64,18 @@ const run = async () => {
   if (argv['tool-calling-model']) modelConfig.toolCalling = argv['tool-calling-model'];
   if (argv['synthesis-model']) modelConfig.synthesis = argv['synthesis-model'];
 
+  const images = argv.image?.map((imgPath) =>
+    readFileSync(resolve(imgPath)).toString('base64')
+  );
+
   console.log(`system : ${systemPath}`);
   console.log(`user   : ${userPath}`);
   if (outputPath) console.log(`output : ${outputPath}`);
+  if (images?.length) console.log(`images : ${argv.image.join(', ')}`);
   console.log('---');
 
   const result = await executeFromFiles(systemPath, userPath, outputPath, {
+    images,
     tools: [getCurrentTimeTool],
     modelConfig: Object.keys(modelConfig).length ? modelConfig : undefined,
     maxIterations: argv['max-iterations'],

@@ -32,6 +32,7 @@ const serializeToolCall = (call) =>
 export const agentLoop = async ({
   system,
   userPrompt,
+  images,
   registry,
   toolCaller,
   synthesis,
@@ -39,7 +40,9 @@ export const agentLoop = async ({
   maxIterations = DEFAULT_MAX_ITERATIONS,
 }) => {
   const toolSchemas = registry.toAPISchemas();
-  let messages = [{ role: 'user', content: userPrompt }];
+  const userMessage = { role: 'user', content: userPrompt };
+  if (images?.length) userMessage.images = images;
+  let messages = [userMessage];
   const toolCallCounts = new Map();
   let hallucinationStreak = 0;
 

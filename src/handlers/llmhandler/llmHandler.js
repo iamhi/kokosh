@@ -5,6 +5,7 @@ import { basicWorkflow } from './workflowBuilder.js';
 export const run = async ({
   system,
   userPrompt,
+  images,
   tools: userTools = [],
   modelConfig = {},
   maxIterations,
@@ -28,6 +29,7 @@ export const run = async ({
   return agentLoop({
     system,
     userPrompt,
+    images,
     registry,
     toolCaller,
     synthesis,

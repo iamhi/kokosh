@@ -17,6 +17,7 @@ export const executeFromFiles = async (
   const result = await run({
     system,
     userPrompt,
+    images: options.images,
     tools: options.tools,
     modelConfig: options.modelConfig,
     maxIterations: options.maxIterations,
