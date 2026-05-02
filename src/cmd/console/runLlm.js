@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
+import { readFileTool } from '../../handlers/llmhandler/tools/readFileTool.js';
 import { resolve } from 'path';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -76,7 +77,7 @@ const run = async () => {
 
   const result = await executeFromFiles(systemPath, userPath, outputPath, {
     images,
-    tools: [getCurrentTimeTool],
+    tools: [getCurrentTimeTool, readFileTool],
     modelConfig: Object.keys(modelConfig).length ? modelConfig : undefined,
     maxIterations: argv['max-iterations'],
   });
