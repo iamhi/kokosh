@@ -1,0 +1,5 @@
+Hello from the file tool test!
+
+This is a sample text file used to verify that the read_file tool works correctly.
+
+It contains multiple lines, some numbers (42, 3.14), and a bit of punctuation — just enough variety to confirm the content is being read and returned faithfully.

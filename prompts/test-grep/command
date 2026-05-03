@@ -1,0 +1,1 @@
+npm run llm -- -s prompts/test-grep/system.md -u prompts/test-grep/user.md
