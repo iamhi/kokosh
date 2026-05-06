@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { checkDirectoryAccess } from '../permissions/directoryGuard.js';
 
 const DEFAULT_LIMIT = 2000;
 
@@ -31,6 +32,9 @@ When a file is truncated, the response includes a note showing the total line co
     required: ['path'],
   },
   execute: async ({ path, offset = 1, limit = DEFAULT_LIMIT }) => {
+    const denied = checkDirectoryAccess(path);
+    if (denied) return denied;
+
     let content;
     try {
       content = readFileSync(path, 'utf8');

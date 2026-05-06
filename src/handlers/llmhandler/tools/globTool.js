@@ -1,5 +1,6 @@
 import { relative } from 'node:path';
 import { walkDir, globToRegex } from './_walkDir.js';
+import { checkDirectoryAccess } from '../permissions/directoryGuard.js';
 
 const DEFAULT_LIMIT = 100;
 
@@ -38,6 +39,9 @@ Parameters:
   },
   execute: async ({ pattern, path: searchRoot, limit = DEFAULT_LIMIT }) => {
     const root = searchRoot ?? process.cwd();
+
+    const denied = checkDirectoryAccess(root);
+    if (denied) return denied;
 
     let regex;
     try {

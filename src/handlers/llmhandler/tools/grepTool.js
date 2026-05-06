@@ -1,6 +1,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { relative } from 'node:path';
 import { walkDir, globToRegex } from './_walkDir.js';
+import { checkDirectoryAccess } from '../permissions/directoryGuard.js';
 
 const MAX_FILE_BYTES = 1 * 1024 * 1024; // 1 MB
 const BINARY_CHECK_BYTES = 8 * 1024;    // 8 KB
@@ -61,6 +62,9 @@ Parameters:
     limit = DEFAULT_LIMIT,
   }) => {
     const root = searchRoot ?? process.cwd();
+
+    const denied = checkDirectoryAccess(root);
+    if (denied) return denied;
 
     let regex;
     try {

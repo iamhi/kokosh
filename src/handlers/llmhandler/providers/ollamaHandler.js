@@ -58,11 +58,12 @@ const adaptMessages = (messages) =>
     };
   });
 
-export const call = async ({ model, system, messages, tools = [] }) => {
+export const call = async ({ model, system, messages, tools = [], options = {} }) => {
   const body = {
     model,
     messages: adaptMessages([{ role: 'system', content: system }, ...messages]),
     stream: false,
+    options: { num_ctx: 16384, ...options },
   };
 
   if (tools.length > 0) {
