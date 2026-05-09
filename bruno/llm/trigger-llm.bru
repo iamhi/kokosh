@@ -1,0 +1,19 @@
+meta {
+  name: Trigger LLM
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/llm
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "user": "What files are in the current directory?",
+    "system": "You are a helpful assistant with access to file system tools.",
+    "maxIterations": 5
+  }
+}
