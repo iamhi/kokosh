@@ -1,0 +1,1 @@
+npm run llm -- -s prompts/test-file/system.md -u prompts/test-file/user.md

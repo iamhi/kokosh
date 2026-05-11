@@ -1,0 +1,1 @@
+Start at https://en.wikipedia.org/wiki/Web_scraping. From the links on that page, pick the single most relevant link for understanding what a "web crawler" is, follow it, and then give me a short explanation of how a web crawler differs from a web scraper. Mention both URLs you fetched and the file paths they were saved to.

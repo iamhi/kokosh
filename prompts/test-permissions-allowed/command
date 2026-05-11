@@ -1,0 +1,1 @@
+npm run llm -- -s prompts/test-permissions-allowed/system.md -u prompts/test-permissions-allowed/user.md

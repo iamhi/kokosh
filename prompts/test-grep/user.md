@@ -1,0 +1,1 @@
+Search the source code for all places where the word "execute" appears. First give me just the list of files that contain it, then show me the actual matching lines only in the tool implementation files (src/handlers/llmhandler/tools/).

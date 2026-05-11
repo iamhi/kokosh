@@ -1,0 +1,1 @@
+npm run llm -- -s prompts/test-image/system.md -u prompts/test-image/user.md --image prompts/test-image/image.jpg
