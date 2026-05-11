@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import { readFileTool } from '../../handlers/llmhandler/tools/readFileTool.js';
 import { globTool } from '../../handlers/llmhandler/tools/globTool.js';
 import { grepTool } from '../../handlers/llmhandler/tools/grepTool.js';
+import { webFetchTool } from '../../handlers/llmhandler/tools/webFetchTool.js';
 import { resolve } from 'path';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -79,7 +80,7 @@ const run = async () => {
 
   const result = await executeFromFiles(systemPath, userPath, outputPath, {
     images,
-    tools: [getCurrentTimeTool, readFileTool, globTool, grepTool],
+    tools: [getCurrentTimeTool, readFileTool, globTool, grepTool, webFetchTool],
     modelConfig: Object.keys(modelConfig).length ? modelConfig : undefined,
     maxIterations: argv['max-iterations'],
   });

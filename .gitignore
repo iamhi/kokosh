@@ -47,3 +47,6 @@ database.db
 
 docs/
 .claude
+
+# fetch_url tool scratch output
+scratch/

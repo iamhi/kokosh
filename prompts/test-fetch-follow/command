@@ -1,0 +1,1 @@
+npm run llm -- -s prompts/test-fetch-follow/system.md -u prompts/test-fetch-follow/user.md
