@@ -13,6 +13,13 @@ export const errorHandler = (err, req, res, next) => {
 
   console.error(err.stack);
 
+  if (err.toolCalls !== undefined) {
+    return res.status(422).json({
+      success: false,
+      result: { answer: err.answer ?? null, toolCalls: err.toolCalls, error: err.message },
+    });
+  }
+
   return res
     .status(500)
     .json({ error: err.message || 'Internal Server Error' });

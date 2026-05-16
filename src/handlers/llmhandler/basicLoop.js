@@ -1,8 +1,8 @@
 import { executeToolCalls } from './tools/executor.js';
 
-const DEFAULT_MAX_ITERATIONS = 20;
+const DEFAULT_MAX_ITERATIONS = parseInt(process.env.MAX_ITERATIONS, 10) || 20;
 const COMPACTION_THRESHOLD = 40;
-const DOOM_LOOP_THRESHOLD = 3;
+const DOOM_LOOP_THRESHOLD = parseInt(process.env.DOOM_LOOP_THRESHOLD, 10) || 10;
 const HALLUCINATION_THRESHOLD = 3;
 
 const buildAssistantMessage = (response) => ({
@@ -45,6 +45,13 @@ export const agentLoop = async ({
   let messages = [userMessage];
   const toolCallCounts = new Map();
   let hallucinationStreak = 0;
+  const allToolCalls = [];
+
+  const throwWithCalls = (message) => {
+    const err = new Error(message);
+    err.toolCalls = allToolCalls;
+    throw err;
+  };
 
   for (let iteration = 1; iteration <= maxIterations; iteration++) {
     // 4. summerize when context grows too large
@@ -58,15 +65,18 @@ export const agentLoop = async ({
 
     // 2. synthesis — model is done, produce final answer
     if (toolResponse.stopReason === 'stop') {
-      return toolResponse.content || synthesis.run(system, messages);
+      const answer = toolResponse.content || await synthesis.run(system, messages);
+      return { answer, toolCalls: allToolCalls };
     }
 
     for (const call of toolResponse.toolCalls) {
+      allToolCalls.push({ name: call.name, arguments: call.arguments });
+
       const key = serializeToolCall(call);
       const count = (toolCallCounts.get(key) ?? 0) + 1;
       toolCallCounts.set(key, count);
       if (count >= DOOM_LOOP_THRESHOLD) {
-        throw new Error(
+        throwWithCalls(
           `Doom loop: tool "${call.name}" called with identical arguments ${count} times`
         );
       }
@@ -84,7 +94,7 @@ export const agentLoop = async ({
       hallucinationStreak++;
       if (hallucinationStreak >= HALLUCINATION_THRESHOLD) {
         const names = [...new Set(unknownTools.map((r) => r.name))].join(', ');
-        throw new Error(
+        throwWithCalls(
           `Hallucination: model called non-existent tool(s) [${names}] for ${hallucinationStreak} consecutive iterations`
         );
       }
@@ -93,7 +103,7 @@ export const agentLoop = async ({
     }
   }
 
-  throw new Error(
+  throwWithCalls(
     `Agent loop reached max iterations (${maxIterations}) without completing`
   );
 };

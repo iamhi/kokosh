@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kokosh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>Kokosh</h1>
+          <p>AI Agent Interface</p>
+        </div>
+      </div>
+      <div id="status-badge" class="status-badge">
+        <span class="status-dot"></span>
+        <span id="status-text">Connecting...</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="prompts-grid">
+        <div class="card prompt-card">
+          <div class="prompt-label">
+            <span>System Prompt</span>
+            <span class="char-count" id="sys-count">0 chars</span>
+          </div>
+          <textarea
+            id="system-prompt"
+            placeholder="Define the AI's role, behavior, and capabilities…&#10;&#10;Example: You are a helpful assistant with access to file system tools. Help the user analyze code and answer questions thoroughly."
+          ></textarea>
+        </div>
+        <div class="card prompt-card">
+          <div class="prompt-label">
+            <span>User Prompt</span>
+            <span class="char-count" id="user-count">0 chars</span>
+          </div>
+          <textarea
+            id="user-prompt"
+            placeholder="Enter your request or question…&#10;&#10;Example: List all JavaScript files in the project and briefly describe what each one does."
+          ></textarea>
+        </div>
+      </div>
+
+      <details class="card config-panel">
+        <summary class="config-summary">
+          <svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          Advanced Configuration
+        </summary>
+        <div class="config-grid">
+          <div class="config-item">
+            <label for="max-iterations">Max Iterations</label>
+            <input type="number" id="max-iterations" value="20" min="1" max="100">
+          </div>
+          <div class="config-item">
+            <label for="model-tool">Tool Calling Model</label>
+            <input type="text" id="model-tool" placeholder="Default from .env">
+          </div>
+          <div class="config-item">
+            <label for="model-synthesis">Synthesis Model</label>
+            <input type="text" id="model-synthesis" placeholder="Default from .env">
+          </div>
+          <div class="config-item">
+            <label for="model-summary">Summarization Model</label>
+            <input type="text" id="model-summary" placeholder="Default from .env">
+          </div>
+          <div class="config-item config-item--full">
+            <label>Tools</label>
+            <div class="tools-grid">
+              <label class="tool-checkbox"><input type="checkbox" name="tools" value="read_file"> read_file</label>
+              <label class="tool-checkbox"><input type="checkbox" name="tools" value="glob_files"> glob_files</label>
+              <label class="tool-checkbox"><input type="checkbox" name="tools" value="grep_files"> grep_files</label>
+              <label class="tool-checkbox"><input type="checkbox" name="tools" value="fetch_url"> fetch_url</label>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div id="error-panel" class="error-panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span id="error-msg">An error occurred.</span>
+      </div>
+
+      <div class="actions">
+        <button id="submit-btn" class="btn-primary">
+          <span class="spinner" id="spinner"></span>
+          <svg id="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          <span id="btn-text">Generate Response</span>
+        </button>
+        <button id="clear-btn" class="btn-ghost">Clear all</button>
+      </div>
+
+      <div id="response-panel" class="card response-panel">
+        <div class="response-header">
+          <div class="response-meta">
+            <span class="response-label">Response</span>
+            <span id="elapsed-badge" class="elapsed-badge"></span>
+          </div>
+          <button id="copy-btn" class="icon-btn">
+            <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span id="copy-label">Copy</span>
+          </button>
+        </div>
+        <div id="response-content" class="response-content"></div>
+        <details id="tool-calls-panel" class="tool-calls-panel">
+          <summary class="tool-calls-summary">
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            <span id="tool-calls-label">Tool Calls</span>
+          </summary>
+          <ol id="tool-calls-list" class="tool-calls-list"></ol>
+        </details>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
