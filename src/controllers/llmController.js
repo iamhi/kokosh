@@ -22,7 +22,7 @@ const resolveTools = (toolNames) => {
   return toolNames.flatMap((name) => AVAILABLE_TOOLS[name] ?? []);
 };
 
-export const llm = async (req, res, next) => {
+export const llm = async (req, res) => {
   const { system, user, images, tools: toolNames, modelConfig, maxIterations } = req.body;
 
   try {
@@ -37,7 +37,7 @@ export const llm = async (req, res, next) => {
 
     return res.json({ success: true, result });
   } catch (err) {
-    return res.status(422).json({
+    return res.status(200).json({
       success: false,
       result: { answer: null, toolCalls: err.toolCalls ?? [], error: err.message },
     });

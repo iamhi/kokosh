@@ -14,7 +14,7 @@ export const errorHandler = (err, req, res, next) => {
   console.error(err.stack);
 
   if (err.toolCalls !== undefined) {
-    return res.status(422).json({
+    return res.status(200).json({
       success: false,
       result: { answer: err.answer ?? null, toolCalls: err.toolCalls, error: err.message },
     });
