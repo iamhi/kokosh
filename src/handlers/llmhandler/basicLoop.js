@@ -24,6 +24,7 @@ const buildToolResultMessages = (results) =>
     role: 'tool',
     content: r.result,
     tool_call_id: r.id,
+    name: r.name,
   }));
 
 const serializeToolCall = (call) =>

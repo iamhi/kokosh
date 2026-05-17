@@ -1,4 +1,4 @@
-import * as ollamaProvider from './providers/ollamaHandler.js';
+import { getProvider } from './providers/index.js';
 import { agentLoop } from './basicLoop.js';
 import { basicWorkflow } from './workflowBuilder.js';
 
@@ -10,18 +10,16 @@ export const run = async ({
   modelConfig = {},
   maxIterations,
 }) => {
-  ollamaProvider.prepare();
+  const { provider, defaultModelConfig } = getProvider();
 
-  const defaultModelConfig = {
-    toolCalling: process.env.OLLAMA_MODEL_TOOL_CALLING || 'llama3.2:1b',
-    synthesis: process.env.OLLAMA_MODEL_SYNTHESIS || 'llama3.2:1b',
-    summarization: process.env.OLLAMA_MODEL_SUMMARIZATION || 'llama3.2:1b',
-  };
+  if (provider.prepare) {
+    provider.prepare();
+  }
 
   const mergedConfig = { ...defaultModelConfig, ...modelConfig };
 
   const { registry, toolCaller, synthesis, summerizer } = basicWorkflow({
-    provider: ollamaProvider,
+    provider,
     modelConfig: mergedConfig,
     userTools,
   });
