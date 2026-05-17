@@ -6,6 +6,7 @@ import { grepTool } from '../../handlers/llmhandler/tools/grepTool.js';
 import { webFetchTool } from '../../handlers/llmhandler/tools/webFetchTool.js';
 import { listDirTool } from '../../handlers/llmhandler/tools/listDirTool.js';
 import { writeFileTool } from '../../handlers/llmhandler/tools/writeFileTool.js';
+import { webSearchTool } from '../../handlers/llmhandler/tools/webSearchTool.js';
 import { resolve } from 'path';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -90,6 +91,7 @@ const run = async () => {
       webFetchTool,
       listDirTool,
       writeFileTool,
+      webSearchTool,
     ],
     modelConfig: Object.keys(modelConfig).length ? modelConfig : undefined,
     maxIterations: argv['max-iterations'],

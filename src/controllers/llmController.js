@@ -5,6 +5,7 @@ import { grepTool } from '../handlers/llmhandler/tools/grepTool.js';
 import { webFetchTool } from '../handlers/llmhandler/tools/webFetchTool.js';
 import { listDirTool } from '../handlers/llmhandler/tools/listDirTool.js';
 import { writeFileTool } from '../handlers/llmhandler/tools/writeFileTool.js';
+import { webSearchTool } from '../handlers/llmhandler/tools/webSearchTool.js';
 
 const AVAILABLE_TOOLS = {
   [readFileTool.name]: readFileTool,
@@ -13,6 +14,7 @@ const AVAILABLE_TOOLS = {
   [webFetchTool.name]: webFetchTool,
   [listDirTool.name]: listDirTool,
   [writeFileTool.name]: writeFileTool,
+  [webSearchTool.name]: webSearchTool,
 };
 
 const resolveTools = (toolNames) => {
