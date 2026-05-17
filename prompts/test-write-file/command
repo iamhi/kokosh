@@ -1,0 +1,1 @@
+npm run llm -- -s prompts/test-write-file/system.md -u prompts/test-write-file/user.md

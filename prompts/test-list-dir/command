@@ -1,0 +1,1 @@
+npm run llm -- -s prompts/test-list-dir/system.md -u prompts/test-list-dir/user.md

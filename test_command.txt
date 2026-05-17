@@ -1,1 +1,0 @@
-npm run llm -- -s .\prompts\test\system.md -u .\prompts\test\user.md

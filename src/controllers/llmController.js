@@ -3,12 +3,16 @@ import { readFileTool } from '../handlers/llmhandler/tools/readFileTool.js';
 import { globTool } from '../handlers/llmhandler/tools/globTool.js';
 import { grepTool } from '../handlers/llmhandler/tools/grepTool.js';
 import { webFetchTool } from '../handlers/llmhandler/tools/webFetchTool.js';
+import { listDirTool } from '../handlers/llmhandler/tools/listDirTool.js';
+import { writeFileTool } from '../handlers/llmhandler/tools/writeFileTool.js';
 
 const AVAILABLE_TOOLS = {
   [readFileTool.name]: readFileTool,
   [globTool.name]: globTool,
   [grepTool.name]: grepTool,
   [webFetchTool.name]: webFetchTool,
+  [listDirTool.name]: listDirTool,
+  [writeFileTool.name]: writeFileTool,
 };
 
 const resolveTools = (toolNames) => {

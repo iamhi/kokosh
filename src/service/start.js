@@ -20,6 +20,20 @@ export const startServer = async () => {
   const app = express();
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Forcefully clear Safari's cache and HSTS records when running locally
+  app.use((req, res, next) => {
+    if (!isProduction || req.hostname === 'localhost' || req.hostname === '127.0.0.1') {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Strict-Transport-Security', 'max-age=0');
+      res.setHeader('Clear-Site-Data', '"cache"');
+    }
+    next();
+  });
+
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
@@ -32,8 +46,11 @@ export const startServer = async () => {
         objectSrc:      ["'none'"],
         frameAncestors: ["'self'"],
         baseUri:        ["'self'"],
+        upgradeInsecureRequests: null,
       },
     },
+    hsts: false,
+    crossOriginEmbedderPolicy: isProduction,
   }));
   app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
   app.use(express.static(publicDir));

@@ -6,8 +6,8 @@
   "author": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/cmd/web/index.js",
-    "dev": "nodemon ./src/cmd/web/index.js",
+    "start": "NODE_ENV=production node ./src/cmd/web/index.js",
+    "dev": "NODE_ENV=development nodemon ./src/cmd/web/index.js",
     "lint": "eslint . --ext .js",
     "format": "prettier --write .",
     "llm": "node ./src/cmd/console/runLlm.js",

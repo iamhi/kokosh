@@ -71,7 +71,12 @@ export const agentLoop = async ({
     }
 
     for (const call of toolResponse.toolCalls) {
-      allToolCalls.push({ name: call.name, arguments: call.arguments });
+      const toolCallRecord = {
+        id: call.id,
+        name: call.name,
+        arguments: call.arguments,
+      };
+      allToolCalls.push(toolCallRecord);
 
       const key = serializeToolCall(call);
       const count = (toolCallCounts.get(key) ?? 0) + 1;
@@ -86,6 +91,14 @@ export const agentLoop = async ({
     // 3. loop if yes — execute tools and continue
     const results = await executeToolCalls(toolResponse.toolCalls, registry);
     messages.push(...buildToolResultMessages(results));
+
+    // Update records with results
+    for (const res of results) {
+      const record = allToolCalls.find((c) => c.id === res.id);
+      if (record) {
+        record.result = res.result;
+      }
+    }
 
     const unknownTools = results.filter((r) =>
       r.result.startsWith('Error: unknown tool "')

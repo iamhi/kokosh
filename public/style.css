@@ -749,7 +749,28 @@ textarea::placeholder {
   color: var(--text-dim);
 }
 
-.tool-call-args {
+.tool-call-details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tool-call-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tool-call-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.tool-call-args,
+.tool-call-result {
   margin: 0;
   font-family: var(--font-mono);
   font-size: 12px;
@@ -757,4 +778,14 @@ textarea::placeholder {
   white-space: pre-wrap;
   word-break: break-all;
   line-height: 1.6;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tool-call-result {
+  color: var(--text-muted);
+  max-height: 400px;
+  overflow-y: auto;
 }

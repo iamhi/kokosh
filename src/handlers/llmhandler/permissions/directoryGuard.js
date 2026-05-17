@@ -8,15 +8,22 @@ function loadAllowedDirs() {
   try {
     const raw = readFileSync(CONFIG_PATH, 'utf8');
     const config = JSON.parse(raw);
-    return (config.directories ?? []).map((d) => normalize(resolve(d)));
+    return config.directories ?? [];
   } catch {
     return [];
   }
 }
 
-function isUnder(childPath, parentDir) {
+function isUnder(childPath, parentPattern) {
   const child = normalize(resolve(childPath));
-  const parent = normalize(resolve(parentDir));
+
+  if (parentPattern.startsWith('*')) {
+    // Treat as suffix match: e.g. "*/kokosh" -> matches ".../kokosh" or ".../kokosh/..."
+    const suffix = normalize(parentPattern.replace(/^\*/, ''));
+    return child.endsWith(suffix) || child.includes(suffix + sep);
+  }
+
+  const parent = normalize(resolve(parentPattern));
   return child === parent || child.startsWith(parent + sep);
 }
 

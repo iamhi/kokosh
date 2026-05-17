@@ -162,10 +162,24 @@
     toolCallsList.innerHTML = '';
     if (toolCalls.length > 0) {
       toolCallsLabel.textContent = `Tool Calls (${toolCalls.length})`;
-      toolCalls.forEach(({ name, arguments: args }) => {
+      toolCalls.forEach(({ name, arguments: args, result }) => {
         const li = document.createElement('li');
         li.className = 'tool-call-item';
-        li.innerHTML = `<span class="tool-call-name">${name}</span><pre class="tool-call-args">${JSON.stringify(args, null, 2)}</pre>`;
+        li.innerHTML = `
+          <span class="tool-call-name">${name}</span>
+          <div class="tool-call-details">
+            <div class="tool-call-section">
+              <span class="tool-call-section-label">Arguments</span>
+              <pre class="tool-call-args">${JSON.stringify(args, null, 2)}</pre>
+            </div>
+            ${result ? `
+            <div class="tool-call-section">
+              <span class="tool-call-section-label">Result</span>
+              <pre class="tool-call-result">${result}</pre>
+            </div>
+            ` : ''}
+          </div>
+        `;
         toolCallsList.appendChild(li);
       });
       toolCallsPanel.hidden = false;

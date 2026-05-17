@@ -4,6 +4,8 @@ import { readFileTool } from '../../handlers/llmhandler/tools/readFileTool.js';
 import { globTool } from '../../handlers/llmhandler/tools/globTool.js';
 import { grepTool } from '../../handlers/llmhandler/tools/grepTool.js';
 import { webFetchTool } from '../../handlers/llmhandler/tools/webFetchTool.js';
+import { listDirTool } from '../../handlers/llmhandler/tools/listDirTool.js';
+import { writeFileTool } from '../../handlers/llmhandler/tools/writeFileTool.js';
 import { resolve } from 'path';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -80,7 +82,15 @@ const run = async () => {
 
   const result = await executeFromFiles(systemPath, userPath, outputPath, {
     images,
-    tools: [getCurrentTimeTool, readFileTool, globTool, grepTool, webFetchTool],
+    tools: [
+      getCurrentTimeTool,
+      readFileTool,
+      globTool,
+      grepTool,
+      webFetchTool,
+      listDirTool,
+      writeFileTool,
+    ],
     modelConfig: Object.keys(modelConfig).length ? modelConfig : undefined,
     maxIterations: argv['max-iterations'],
   });
