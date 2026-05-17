@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { readFileTool } from './readFileTool.js';
 
-const tmp = join(tmpdir(), 'kokosh_readfile_test');
+const tmp = join(process.cwd(), '.tmp_readfile_test');
 
 before(() => mkdirSync(tmp, { recursive: true }));
 after(() => rmSync(tmp, { recursive: true, force: true }));

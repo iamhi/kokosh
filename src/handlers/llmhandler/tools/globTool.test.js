@@ -15,7 +15,7 @@ import { globTool } from './globTool.js';
 //     node_modules/
 //       ignored.js
 
-const root = join(tmpdir(), 'kokosh_glob_test');
+const root = join(process.cwd(), '.tmp_glob_test');
 
 before(() => {
   mkdirSync(join(root, 'sub'), { recursive: true });

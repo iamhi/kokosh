@@ -1,30 +1,25 @@
-import { readdirSync } from 'node:fs';
+import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const SKIP_DIRS = new Set(['node_modules', '.git', '.svn', '.hg', '.bzr']);
 
-export function walkDir(root) {
-  const files = [];
-
-  function walk(dir) {
-    let entries;
-    try {
-      entries = readdirSync(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        if (SKIP_DIRS.has(entry.name) || entry.name.startsWith('.')) continue;
-        walk(join(dir, entry.name));
-      } else if (entry.isFile()) {
-        files.push(join(dir, entry.name));
-      }
-    }
+export async function* walkDir(root) {
+  let entries;
+  try {
+    entries = await readdir(root, { withFileTypes: true });
+  } catch {
+    return;
   }
 
-  walk(root);
-  return files;
+  for (const entry of entries) {
+    const fullPath = join(root, entry.name);
+    if (entry.isDirectory()) {
+      if (SKIP_DIRS.has(entry.name) || entry.name.startsWith('.')) continue;
+      yield* walkDir(fullPath);
+    } else if (entry.isFile()) {
+      yield fullPath;
+    }
+  }
 }
 
 // Converts a glob pattern to a RegExp that matches forward-slash-separated relative paths.

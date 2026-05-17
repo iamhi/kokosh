@@ -6,19 +6,10 @@ const DEFAULT_LIMIT = 100;
 
 export const globTool = {
   name: 'glob_files',
-  description: `Find files by name pattern using glob syntax. Returns relative paths sorted by directory walk order. Skips node_modules and hidden directories.
-
-Glob syntax:
-- ** matches any number of path segments (including zero)
-- *  matches any characters within a single segment
-- ?  matches any single character within a segment
-
-Examples: "**/*.js", "src/**/*.ts", "*.json"
-
-Parameters:
-- pattern (required): Glob pattern to match files against.
-- path (optional): Root directory to search. Defaults to current working directory.
-- limit (optional): Maximum number of results to return. Defaults to ${DEFAULT_LIMIT}.`,
+  description: `Find files in the local filesystem by their name.
+Use this to discover datasets, documents, or logs before analyzing them.
+Examples: "**/*.csv" (finds all CSV files), "**/*report*.txt" (finds text files with "report" in the name).
+Returns a list of matching file paths.`,
   parameters: {
     type: 'object',
     properties: {
@@ -50,13 +41,19 @@ Parameters:
       return `Error: invalid glob pattern "${pattern}": ${err.message}`;
     }
 
-    const allFiles = walkDir(root);
-    const matching = allFiles
-      .map((f) => relative(root, f).replace(/\\/g, '/'))
-      .filter((rel) => regex.test(rel));
+    const results = [];
+    let truncated = false;
 
-    const truncated = matching.length > limit;
-    const results = truncated ? matching.slice(0, limit) : matching;
+    for await (const file of walkDir(root)) {
+      const rel = relative(root, file).replace(/\\/g, '/');
+      if (regex.test(rel)) {
+        if (results.length >= limit) {
+          truncated = true;
+          break;
+        }
+        results.push(rel);
+      }
+    }
 
     if (results.length === 0) return `No files matched pattern "${pattern}"`;
 

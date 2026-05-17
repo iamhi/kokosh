@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, resolve } from 'node:path';
 import { NodeHtmlMarkdown } from 'node-html-markdown';
 import { checkDirectoryAccess } from '../permissions/directoryGuard.js';
@@ -47,23 +47,10 @@ const buildPreamble = (url, title) => {
 
 export const webFetchTool = {
   name: 'fetch_url',
-  description: `Fetches a web page using a headless browser (renders JavaScript), converts the rendered HTML to Markdown, writes the result to a .md file, and returns the file path together with the hyperlinks found on the page so you can decide which links to follow next.
-
-Use this when you need to read the content of a web page or discover what's linked from it.
-
-The output directory is configurable via the WEB_FETCH_OUTPUT_DIR environment variable (default: scratch/web/ inside the project). Each URL produces a deterministic filename (slug + short hash), so re-fetching the same URL overwrites the previous .md file.
-
-Parameters:
-- url (required): An absolute http(s) URL to fetch.
-
-Returns a string in the form:
-  Saved page to: <absolute path to .md file>
-  Title: <page title>
-  Links found (deduped, max 100):
-  - (url: https://..., description: ...)
-  ...
-
-If the fetch fails (invalid URL, navigation timeout, network error, page produces no extractable text), returns an error message string and does not write any file.`,
+  description: `Download and read a webpage from the internet.
+Extracts the main text content, converts it to Markdown format, and saves it locally.
+Use this for web research, reading articles, or gathering data from websites.
+It returns the local path to the saved document and a list of links found on the page.`,
   parameters: {
     type: 'object',
     properties: {
@@ -88,7 +75,7 @@ If the fetch fails (invalid URL, navigation timeout, network error, page produce
     if (denied) return denied;
 
     try {
-      mkdirSync(outputDir, { recursive: true });
+      await mkdir(outputDir, { recursive: true });
     } catch (err) {
       return `Error creating output directory "${outputDir}": ${err.message}`;
     }
@@ -117,7 +104,7 @@ If the fetch fails (invalid URL, navigation timeout, network error, page produce
     const filepath = join(outputDir, urlToFilename(url));
 
     try {
-      writeFileSync(filepath, fullMarkdown, 'utf8');
+      await writeFile(filepath, fullMarkdown, 'utf8');
     } catch (err) {
       return `Error writing markdown to "${filepath}": ${err.message}`;
     }

@@ -1,18 +1,14 @@
-import { readFileSync } from 'node:fs';
+import { createReadStream } from 'node:fs';
+import { createInterface } from 'node:readline';
 import { checkDirectoryAccess } from '../permissions/directoryGuard.js';
 
 const DEFAULT_LIMIT = 2000;
 
 export const readFileTool = {
   name: 'read_file',
-  description: `Reads a file and returns its content with line numbers (cat -n format). Large files are paginated — by default returns the first ${DEFAULT_LIMIT} lines. Use offset and limit to read a specific range.
-
-Parameters:
-- path (required): Absolute or relative path to the file.
-- offset (optional): Line number to start from (1-indexed). Defaults to 1.
-- limit (optional): Maximum number of lines to return. Defaults to ${DEFAULT_LIMIT}.
-
-When a file is truncated, the response includes a note showing the total line count and the offset to use to continue reading.`,
+  description: `Read the contents of a local file (text, CSV, JSON, logs, markdown). Returns the text with line numbers. Use this to read data or documents for analysis.
+WARNING: Do not use this to search for specific keywords across files; use 'grep_files' instead.
+Large files are paginated automatically. If a file is truncated, use the 'offset' parameter to read the next chunk.`,
   parameters: {
     type: 'object',
     properties: {
@@ -35,21 +31,36 @@ When a file is truncated, the response includes a note showing the total line co
     const denied = checkDirectoryAccess(path);
     if (denied) return denied;
 
-    let content;
+    const startLine = Math.max(1, Math.floor(offset));
+    const maxLine = startLine + limit - 1;
+    const lines = [];
+    let currentLine = 0;
+    let totalLines = 0;
+
     try {
-      content = readFileSync(path, 'utf8');
+      const rl = createInterface({
+        input: createReadStream(path),
+        terminal: false,
+      });
+
+      for await (const line of rl) {
+        currentLine++;
+        totalLines = currentLine;
+        if (currentLine >= startLine && currentLine <= maxLine) {
+          lines.push(line);
+        }
+      }
     } catch (err) {
       return `Error reading file "${path}": ${err.message}`;
     }
 
-    const lines = content.split('\n');
-    const totalLines = lines.length;
-    const startLine = Math.max(1, Math.floor(offset));
-    const slice = lines.slice(startLine - 1, startLine - 1 + limit);
-    const endLine = startLine + slice.length - 1;
+    if (totalLines === 0 && startLine > 1) {
+      return `Error: file "${path}" has fewer than ${startLine} lines.`;
+    }
 
+    const endLine = Math.min(totalLines, maxLine);
     const padWidth = String(totalLines).length;
-    const numbered = slice.map((line, i) => {
+    const numbered = lines.map((line, i) => {
       const lineNum = String(startLine + i).padStart(padWidth);
       return `${lineNum}\t${line}`;
     });

@@ -12,7 +12,7 @@ import { grepTool } from './grepTool.js';
 //     gamma.txt  — contains "no match here"
 //     binary.bin — binary file (should be skipped)
 
-const root = join(tmpdir(), 'kokosh_grep_test');
+const root = join(process.cwd(), '.tmp_grep_test');
 
 before(() => {
   mkdirSync(root, { recursive: true });

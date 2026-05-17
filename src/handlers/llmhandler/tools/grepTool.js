@@ -1,4 +1,6 @@
-import { readFileSync, statSync } from 'node:fs';
+import { createReadStream } from 'node:fs';
+import { createInterface } from 'node:readline';
+import { stat } from 'node:fs/promises';
 import { relative } from 'node:path';
 import { walkDir, globToRegex } from './_walkDir.js';
 import { checkDirectoryAccess } from '../permissions/directoryGuard.js';
@@ -7,25 +9,26 @@ const MAX_FILE_BYTES = 1 * 1024 * 1024; // 1 MB
 const BINARY_CHECK_BYTES = 8 * 1024;    // 8 KB
 const DEFAULT_LIMIT = 100;
 
-function isBinary(buf) {
-  const slice = buf.subarray(0, BINARY_CHECK_BYTES);
-  return slice.includes(0);
+async function isBinary(file) {
+  return new Promise((resolve) => {
+    const stream = createReadStream(file, { end: BINARY_CHECK_BYTES });
+    stream.on('data', (chunk) => {
+      if (chunk.includes(0)) {
+        resolve(true);
+        stream.destroy();
+      }
+    });
+    stream.on('end', () => resolve(false));
+    stream.on('error', () => resolve(false));
+  });
 }
 
 export const grepTool = {
   name: 'grep_files',
-  description: `Search file contents using a regular expression. Skips binary files, files over 1 MB, node_modules, and hidden directories.
-
-output_mode:
-- "files_with_matches" (default): returns paths of files containing at least one match
-- "content": returns matching lines as "file:lineNumber: line"
-
-Parameters:
-- pattern (required): Regular expression to search for, e.g. "function\\s+\\w+" or "TODO".
-- path (optional): Root directory to search. Defaults to current working directory.
-- include (optional): Glob pattern to filter which files are searched, e.g. "*.ts" or "**/*.js".
-- output_mode (optional): "files_with_matches" or "content". Defaults to "files_with_matches".
-- limit (optional): Maximum results to return. Defaults to ${DEFAULT_LIMIT}.`,
+  description: `Search inside files for a specific text pattern or regular expression.
+Excellent for finding keywords in large datasets, logs, or documents without reading the entire file.
+Set 'output_mode' to 'content' to see the actual text lines containing your keyword.
+Set 'include' to filter by file type (e.g., '*.csv' or '*.txt').`,
   parameters: {
     type: 'object',
     properties: {
@@ -74,11 +77,10 @@ Parameters:
     }
 
     const includeRegex = include ? globToRegex(include) : null;
-    const allFiles = walkDir(root);
     const results = [];
     let truncated = false;
 
-    for (const file of allFiles) {
+    for await (const file of walkDir(root)) {
       if (results.length >= limit) {
         truncated = true;
         break;
@@ -88,38 +90,40 @@ Parameters:
 
       if (includeRegex && !includeRegex.test(rel)) continue;
 
-      let size;
       try {
-        size = statSync(file).size;
+        const stats = await stat(file);
+        if (stats.size > MAX_FILE_BYTES) continue;
       } catch {
         continue;
       }
-      if (size > MAX_FILE_BYTES) continue;
 
-      let buf;
+      if (await isBinary(file)) continue;
+
       try {
-        buf = readFileSync(file);
-      } catch {
-        continue;
-      }
-      if (isBinary(buf)) continue;
+        const rl = createInterface({
+          input: createReadStream(file),
+          terminal: false,
+        });
 
-      const content = buf.toString('utf8');
-
-      if (output_mode === 'files_with_matches') {
-        if (regex.test(content)) results.push(rel);
-      } else {
-        const lines = content.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-          if (results.length >= limit) {
-            truncated = true;
-            break;
-          }
-          if (regex.test(lines[i])) {
-            results.push(`${rel}:${i + 1}: ${lines[i]}`);
+        let currentLine = 0;
+        for await (const line of rl) {
+          currentLine++;
+          if (regex.test(line)) {
+            if (output_mode === 'files_with_matches') {
+              results.push(rel);
+              break; // exit for-await (readline)
+            } else {
+              results.push(`${rel}:${currentLine}: ${line}`);
+              if (results.length >= limit) {
+                truncated = true;
+                break;
+              }
+            }
           }
         }
-        if (truncated) break;
+        if (truncated) break; // exit for-await (walkDir)
+      } catch {
+        continue;
       }
     }
 
