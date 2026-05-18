@@ -20,19 +20,19 @@ const DEFAULT_TOOLS = [webSearchTool, rssTool, webFetchTool, scratchpadTool, rag
 
 const DISCOVERY_GUIDELINES = `
 IMPORTANT GUIDELINES FOR UNBIASED, AUTONOMOUS RESEARCH:
-1. INDEPENDENT DISCOVERY FIRST: Your primary goal is to find FRESH and INDEPENDENT sources. Use web_search (engine="all") to proactively look for new websites, niche blogs, and RSS feeds that are NOT in any existing list. 
-2. UNGUIDED THINKING: Do not rely solely on provided databases. Actively search for "alternative viewpoints", "contrarian analysis", and "raw data sources" related to the topic.
-3. RAG AS SECONDARY: Use the research_rag tool ONLY to supplement your findings with established trusted sources (trusted_rss.json). Do not let the database limit your exploration.
-4. RSS EXTRACTION: When you find a relevant website via web search, try to find its RSS feed URL or direct news endpoint to get the most detailed information.
-5. IGNORE ACCESS ERRORS: If you hit CAPTCHAs or 403s, move on immediately to find a different, accessible source.
+1. MOMENT OF EXECUTION: You are conducting research RIGHT NOW. Prioritize news and data from the last 24 hours.
+2. INDEPENDENT DISCOVERY FIRST: Your primary goal is to find FRESH and INDEPENDENT sources. Use web_search (engine="all") to proactively look for new websites, niche blogs, and RSS feeds that are NOT in any existing list. 
+3. SEARCH QUERIES: When searching, append the current year or "today" to your queries if necessary to force the search engine to return recent results.
+4. UNGUIDED THINKING: Do not rely solely on provided databases. Actively search for "alternative viewpoints", "contrarian analysis", and "raw data sources" related to the topic.
+5. RAG AS SECONDARY: Use the research_rag tool ONLY to supplement your findings with established trusted sources (trusted_rss.json). Do not let the database limit your exploration.
 `;
 
-/**
- * Executes a single research task.
- * @param {Object} task - The task configuration from JSON.
- */
 export async function executeTask(task) {
   console.log(`🚀 Executing task: ${task.id}`);
+
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const timeContext = `Current Date: ${now.toDateString()}\nCurrent Time: ${now.toTimeString()}\n`;
 
   // Ensure directories exist
   if (!fs.existsSync(SCRATCH_DIR)) fs.mkdirSync(SCRATCH_DIR, { recursive: true });
@@ -41,11 +41,11 @@ export async function executeTask(task) {
   try {
     let userPrompt = task.user;
     let tools = DEFAULT_TOOLS;
-    let systemPrompt = task.system;
+    let systemPrompt = `${timeContext}\n${task.system}`;
 
     if (task.isSynthesis) {
       // For synthesis, we need to find the files generated today
-      const today = new Date().toISOString().split('T')[0];
+      const today = dateStr;
       const files = fs.readdirSync(SCRATCH_DIR)
         .filter(f => f.includes(today))
         .map(f => path.join(SCRATCH_DIR, f));
