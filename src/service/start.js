@@ -12,6 +12,7 @@ import routes from '../routes/index.js';
 import { errorHandler } from '../middlewares/errorHandler.js';
 import { setupAllRepositories } from '../db/repositories.js';
 import { migrate as migrateDatabase } from '../db/migration.js'
+import { startScheduler } from './scheduler.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '../../public');
@@ -67,6 +68,8 @@ export const startServer = async () => {
   await migrateDatabase();
 
   setupAllRepositories();
+
+  startScheduler();
 
   app.use('/api', routes);
 

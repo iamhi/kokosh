@@ -14,8 +14,8 @@ Use this tool to find up-to-date information, documentation, or discover URLs to
       },
       engine: {
         type: 'string',
-        description: 'Optional: the search engine to use (duckduckgo, brave, google). If omitted, uses default based on available API keys.',
-        enum: ['duckduckgo', 'brave', 'google'],
+        description: 'Optional: the search engine to use (duckduckgo, brave, google, all). If "all", queries all available engines sequentially. Defaults to available engines.',
+        enum: ['duckduckgo', 'brave', 'google', 'all'],
       },
     },
     required: ['query'],
@@ -29,22 +29,35 @@ Use this tool to find up-to-date information, documentation, or discover URLs to
     const googleKey = process.env.GOOGLE_SEARCH_API_KEY;
     const googleCx = process.env.GOOGLE_SEARCH_CX;
 
-    let selectedEngine = engine;
-    if (!selectedEngine) {
-      if (braveKey) selectedEngine = 'brave';
-      else if (googleKey && googleCx) selectedEngine = 'google';
-      else selectedEngine = 'duckduckgo';
+    const availableEngines = [];
+    if (braveKey) availableEngines.push('brave');
+    if (googleKey && googleCx) availableEngines.push('google');
+    availableEngines.push('duckduckgo');
+
+    let enginesToUse = [];
+    if (engine === 'all') {
+      enginesToUse = availableEngines;
+    } else if (engine && availableEngines.includes(engine)) {
+      enginesToUse = [engine];
+    } else {
+      // Default behavior: use the first available high-quality engine, or DDG
+      enginesToUse = [availableEngines[0]];
     }
 
-    if (selectedEngine === 'brave') {
-      if (!braveKey) return 'Error: BRAVE_API_KEY is not set in environment variables.';
-      return await searchBrave(query, braveKey);
-    } else if (selectedEngine === 'google') {
-      if (!googleKey || !googleCx) return 'Error: GOOGLE_SEARCH_API_KEY or GOOGLE_SEARCH_CX is not set.';
-      return await searchGoogle(query, googleKey, googleCx);
-    } else {
-      return await searchDuckDuckGo(query);
+    const allResults = [];
+    for (const selectedEngine of enginesToUse) {
+      let result;
+      if (selectedEngine === 'brave') {
+        result = await searchBrave(query, braveKey);
+      } else if (selectedEngine === 'google') {
+        result = await searchGoogle(query, googleKey, googleCx);
+      } else {
+        result = await searchDuckDuckGo(query);
+      }
+      allResults.push(`--- Search Engine: ${selectedEngine.toUpperCase()} ---\n${result}`);
     }
+
+    return allResults.join('\n\n');
   },
 };
 

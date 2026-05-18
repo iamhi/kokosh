@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "id": "morning_pulse",
+      "cron": "0 7 * * *",
+      "system": "You are a morning market analyst. Focus on overnight global market performance and opening expectations for the US market.",
+      "user": "Summarize the key events from Asian and European markets that will impact the US opening today.",
+      "maxIterations": 10
+    },
+    {
+      "id": "afternoon_deep_dive",
+      "cron": "0 15 * * *",
+      "system": "You are a specialized technology sector researcher. Focus on intraday movements in big tech and emerging AI startups.",
+      "user": "Find the top trending technology news from the last 6 hours, focusing on semiconductor earnings and AI product launches.",
+      "maxIterations": 12
+    },
+    {
+      "id": "evening_report",
+      "cron": "0 21 * * *",
+      "system": "You are a senior editor synthesizing the day's research. Your goal is to create a 'Day in Review' blog post.",
+      "user": "Read all intermediate research reports generated today and synthesize them into a comprehensive daily summary.",
+      "maxIterations": 8,
+      "isSynthesis": true
+    }
+  ]
+}

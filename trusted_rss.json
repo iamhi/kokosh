@@ -1,0 +1,12 @@
+{
+  "feeds": [
+    { "url": "https://feeds.a16z.com/a16z/blog", "category": "Tech/VC", "description": "Andreessen Horowitz blog covering software, AI, and biotech trends." },
+    { "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html", "category": "Finance", "description": "CNBC Finance news and market updates." },
+    { "url": "https://techcrunch.com/feed/", "category": "Tech", "description": "Breaking technology news and startup analysis." },
+    { "url": "https://openai.com/news/rss.xml", "category": "AI", "description": "Official news and product announcements from OpenAI." },
+    { "url": "https://www.reutersagency.com/feed/", "category": "Global News", "description": "Reuters agency feed for global breaking news." },
+    { "url": "https://www.ft.com/news-feed?format=rss", "category": "Finance", "description": "Financial Times global economy and business news." },
+    { "url": "https://theverge.com/rss/index.xml", "category": "Tech", "description": "Technology, science, art, and culture." },
+    { "url": "https://stratechery.com/feed/", "category": "Strategy/Tech", "description": "Ben Thompson's analysis of the strategy and business of technology." }
+  ]
+}

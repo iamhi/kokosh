@@ -6,6 +6,10 @@ import { webFetchTool } from '../handlers/llmhandler/tools/webFetchTool.js';
 import { listDirTool } from '../handlers/llmhandler/tools/listDirTool.js';
 import { writeFileTool } from '../handlers/llmhandler/tools/writeFileTool.js';
 import { webSearchTool } from '../handlers/llmhandler/tools/webSearchTool.js';
+import { rssTool } from '../handlers/llmhandler/tools/rssTool.js';
+import { pdfTool } from '../handlers/llmhandler/tools/pdfTool.js';
+import { scratchpadTool } from '../handlers/llmhandler/tools/scratchpadTool.js';
+import { ragTool } from '../handlers/llmhandler/tools/ragTool.js';
 
 const AVAILABLE_TOOLS = {
   [readFileTool.name]: readFileTool,
@@ -15,6 +19,10 @@ const AVAILABLE_TOOLS = {
   [listDirTool.name]: listDirTool,
   [writeFileTool.name]: writeFileTool,
   [webSearchTool.name]: webSearchTool,
+  [rssTool.name]: rssTool,
+  [pdfTool.name]: pdfTool,
+  [scratchpadTool.name]: scratchpadTool,
+  [ragTool.name]: ragTool,
 };
 
 const resolveTools = (toolNames) => {

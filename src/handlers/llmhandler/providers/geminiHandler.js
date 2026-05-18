@@ -20,7 +20,24 @@ const adaptMessages = (messages) => {
     if (msg.role === 'user') {
       const parts = [];
       if (msg.content) parts.push({ text: msg.content });
-      // Ignoring images for now unless implemented fully in the prompt structures.
+      if (msg.images && Array.isArray(msg.images)) {
+        msg.images.forEach((img) => {
+          // Check if it's already a full data URI or just raw base64
+          let mimeType = 'image/jpeg';
+          let data = img;
+          const match = img.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            mimeType = match[1];
+            data = match[2];
+          }
+          parts.push({
+            inlineData: {
+              mimeType,
+              data,
+            },
+          });
+        });
+      }
       return { role: 'user', parts };
     }
     if (msg.role === 'assistant') {
