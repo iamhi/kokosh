@@ -25,6 +25,7 @@ Kokosh operates on an iterative **Plan → Act → Observe** loop. It doesn't ju
 
 ### 3. Flexible Infrastructure
 *   **Multi-Provider:** Switch between **Google Gemini** (for high-reasoning and vision) and **Ollama** (for private, local execution).
+*   **Small Model Optimization:** Specialized handling for small Ollama models (Llama 3.2 1B, etc.) with robust tool parsing and aggressive context management. [Learn more in SMALL_MODELS.md](./SMALL_MODELS.md).
 *   **Context Compaction:** Automatically summarizes long conversation histories to prevent "context overflow" during extensive research tasks.
 
 ---

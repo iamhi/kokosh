@@ -1,9 +1,11 @@
 export const createSummerizer = (provider, model) => ({
   async summarize(messages, system) {
     const compactionSystem = [
-      'Summarize the conversation below into a concise context block.',
-      'Include: original goal, key tool results, conclusions reached, current state.',
-      'Output only the summary, no preamble.',
+      '### INSTRUCTION',
+      'Summarize the conversation into a dense context block.',
+      'Identify: Goal, Progress, Key Data, Next Steps.',
+      'Format as a bulleted list.',
+      'NO preamble, NO conversational filler.',
     ].join('\n');
 
     const { content } = await provider.call({
@@ -11,13 +13,20 @@ export const createSummerizer = (provider, model) => ({
       system: compactionSystem,
       messages,
       tools: [],
+      options: { temperature: 0.2 } // More deterministic summarization
     });
 
-    const tailStartIdx = Math.max(1, messages.length - 4);
+    // For small models, we keep fewer messages in the tail to avoid context overflow
+    const tailCount = parseInt(process.env.COMPACTION_TAIL_COUNT, 10) || 3;
+    const tailStartIdx = Math.max(1, messages.length - tailCount);
     const tail = messages.slice(tailStartIdx);
+    
     return [
-      messages[0],
-      { role: 'assistant', content: `<context_summary>\n${content}\n</context_summary>` },
+      messages[0], // Keep the original user message if possible
+      { 
+        role: 'assistant', 
+        content: `### CONTEXT_SUMMARY\n${content}\n---\nContinuing the task based on this summary.` 
+      },
       ...tail,
     ];
   },

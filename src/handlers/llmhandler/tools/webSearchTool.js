@@ -37,8 +37,13 @@ Use this tool to find up-to-date information, documentation, or discover URLs to
     let enginesToUse = [];
     if (engine === 'all') {
       enginesToUse = availableEngines;
-    } else if (engine && availableEngines.includes(engine)) {
-      enginesToUse = [engine];
+    } else if (engine) {
+      if (availableEngines.includes(engine)) {
+        enginesToUse = [engine];
+      } else {
+        const missing = engine === 'brave' ? 'BRAVE_API_KEY' : 'GOOGLE_SEARCH_API_KEY or GOOGLE_SEARCH_CX';
+        return `Error: ${missing} is not set. Cannot use ${engine} search engine.`;
+      }
     } else {
       // Default behavior: use the first available high-quality engine, or DDG
       enginesToUse = [availableEngines[0]];
@@ -121,6 +126,10 @@ const searchDuckDuckGo = async (query) => {
 
     const html = await response.text();
     
+    if (html.includes('error-lite@duckduckgo.com') || html.includes('ddg-captcha')) {
+      return 'Error: DuckDuckGo blocked the request (bot detection). Try a different search engine or query.';
+    }
+
     // Convert to markdown for easier parsing/reading
     const markdown = new NodeHtmlMarkdown().translate(html);
     

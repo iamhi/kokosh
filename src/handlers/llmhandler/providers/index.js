@@ -8,9 +8,9 @@ export const getProvider = () => {
     return {
       provider: geminiProvider,
       defaultModelConfig: {
-        toolCalling: process.env.GEMINI_MODEL_TOOL_CALLING || 'gemini-2.5-flash',
-        synthesis: process.env.GEMINI_MODEL_SYNTHESIS || 'gemini-2.5-flash',
-        summarization: process.env.GEMINI_MODEL_SUMMARIZATION || 'gemini-2.5-flash',
+        toolCalling: process.env.GEMINI_MODEL_TOOL_CALLING || 'gemini-1.5-flash',
+        synthesis: process.env.GEMINI_MODEL_SYNTHESIS || 'gemini-1.5-flash',
+        summarization: process.env.GEMINI_MODEL_SUMMARIZATION || 'gemini-1.5-flash',
       },
     };
   }
